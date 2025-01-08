@@ -3,9 +3,7 @@ import java.io.IOException;
 
 public class Ex2Sheet implements Sheet {
     private Cell[][] table;
-    // Add your code here
-
-    // ///////////////////
+    //
     public Ex2Sheet(int x, int y) {
         table = new SCell[x][y];
         for (int i = 0; i < x; i = i + 1) {
@@ -41,11 +39,22 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public Cell get(String cords) {
-        Cell ans = null;
-        // Add your code here
+        if (cords == null || cords.isEmpty()) {
+            return null;
+        }
+        cords = cords.toUpperCase();
+        int col = cords.charAt(0) - 'A'; // עמודה לפי אות ראשונה
+        int row;
+        try {
+            row = Integer.parseInt(cords.substring(1)); // שורה מהמספר לאחר האות
+        } catch (NumberFormatException e) {
+            return null;
+        }
 
-        /////////////////////
-        return ans;
+        if (!isIn(row, col)) {
+            return null;
+        }
+        return get(row, col);
     }
 
     @Override
@@ -77,11 +86,7 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public boolean isIn(int xx, int yy) {
-        boolean ans = xx >= 0 && yy >= 0;
-        // Add your code here
-
-        /////////////////////
-        return ans;
+        return xx >= 0 && xx < width() && yy >= 0 && yy < height();
     }
 
     @Override
