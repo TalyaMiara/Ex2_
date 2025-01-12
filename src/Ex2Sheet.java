@@ -1,4 +1,4 @@
-import java.io.IOException;
+import java.io.*;
 // Add your documentation below:
 
 public class Ex2Sheet implements Sheet {
@@ -20,17 +20,10 @@ public class Ex2Sheet implements Sheet {
 
     @Override
     public String value(int x, int y) {
-        String ans = Ex2Utils.EMPTY_CELL;
-        // Add your code here
-
-        Cell c = get(x, y);
-        if (c != null) {
-            ans = c.toString();
-        }
-
-        /////////////////////
-        return ans;
+        return get(x, y).getData() != null ? eval(x, y) : Ex2Utils.EMPTY_CELL; // Evaluate cell value if non-empty
     }
+
+
 
     @Override
     public Cell get(int x, int y) {
@@ -70,18 +63,18 @@ public class Ex2Sheet implements Sheet {
     @Override
     public void set(int x, int y, String s) {
         Cell c = new SCell(s);
-        table[x][y] = c;
-        // Add your code here
-
-        /////////////////////
+        if(isIn(x,y)){
+            table[x][y] = c;
+        }
     }
 
     @Override
     public void eval() {
-        int[][] dd = depth();
-        // Add your code here
-
-        // ///////////////////
+        for (int x=0; x<width();x++){
+            for (int y = 0; y <height() ; y++) {
+                 eval(x,y);
+            }
+        }
     }
 
     @Override
@@ -92,36 +85,105 @@ public class Ex2Sheet implements Sheet {
     @Override
     public int[][] depth() {
         int[][] ans = new int[width()][height()];
-        // Add your code here
 
-        // ///////////////////
         return ans;
     }
 
     @Override
     public void load(String fileName) throws IOException {
-        // Add your code here
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            // Clear the existing table
+            table = new SCell[width()][height()];
+            for (int x = 0; x < width(); x++) {
+                for (int y = 0; y < height(); y++) {
+                    table[x][y] = new SCell(Ex2Utils.EMPTY_CELL);
+                }
+            }
 
-        /////////////////////
+            // Validate the file header
+            String header = reader.readLine();
+            if (header == null || !header.equals("I2CS ArielU: SpreadSheet (Ex2) assignment\n")) {
+                throw new IOException("Invalid file format: Missing or incorrect header.");
+            }
+
+            // Read and parse each line
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts.length != 3) {
+                    throw new IOException("Invalid file format: Incorrect number of columns in line: " + line);
+                }
+
+                try {
+                    int x = Integer.parseInt(parts[0].trim());
+                    int y = Integer.parseInt(parts[1].trim());
+                    String data = parts[2].trim();
+
+                    if (isIn(x, y)) {
+                        table[x][y] = new SCell(data);
+                    } else {
+                        throw new IOException("Invalid cell coordinates in line: " + line);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new IOException("Invalid cell coordinates format in line: " + line, e);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override
     public void save(String fileName) throws IOException {
-        // Add your code here
-
-        /////////////////////
+        try (Writer writer = new FileWriter(fileName)) {
+            writer.write("I2CS ArielU: SpreadSheet (Ex2) assignment - this line should be ignored in the load method\n"); // Write header
+            for (int x = 0; x < width(); x++) {
+                for (int y = 0; y < height(); y++) {
+                    Cell cell = get(x, y);
+                    if (cell != null && !cell.getData().isEmpty()) {
+                        writer.write(x + "," + y + "," + cell.getData() + "\n");
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Override
     public String eval(int x, int y) {
-        String ans = null;
-        if (get(x, y) != null) {
-            ans = get(x, y).toString();
+        Cell cell=get(x,y);
+        if(cell==null){
+            return Ex2Utils.EMPTY_CELL;
         }
-        // Add your code here
+        if (cell.getType()==Ex2Utils.FORM || (!cell.getData().isEmpty() &&cell.getData().startsWith("=")) ){
 
-        /////////////////////
-        return ans;
+            try {
+                String str=computeForm(cell.getData()).toString();
+                return str;
+            }
+            catch (IllegalArgumentException e){
+                cell.setType(Ex2Utils.ERR_FORM_FORMAT);
+                return Ex2Utils.ERR_FORM;
+            }
+            catch (StackOverflowError e){
+                cell.setType(Ex2Utils.ERR_CYCLE_FORM);
+                return Ex2Utils.ERR_CYCLE;
+            }
+
+        }
+        if (cell.getType()==Ex2Utils.ERR_CYCLE_FORM){
+            return Ex2Utils.ERR_CYCLE;
+        }
+        if (cell.getType()==Ex2Utils.ERR_FORM_FORMAT){
+            return Ex2Utils.ERR_FORM;
+        }
+        return cell.getData();
+
+
+
     }
 
 
@@ -217,6 +279,24 @@ public class Ex2Sheet implements Sheet {
 
         // If no operator is found, throw an error
         if (indexOfMainOperator == -1) {
+            int x=-1;
+            String str=String.valueOf(Character.toUpperCase(expression.charAt(0)));
+            for (int i = 0; i < Ex2Utils.ABC.length; i++) {
+                if (Ex2Utils.ABC[i].equals(str)){
+                    x=i;
+                    if (isNumber(expression.substring(1))) {
+                        double dy = Double.parseDouble(expression.substring(1));
+                        int y = (int) dy;
+                        if (y==dy){
+                            String s=get(x,y).getData();
+                            if (s.charAt(0)=='='){
+                                return  evaluate((computeForm(s)).toString());
+                            }
+                            return evaluate(s);
+                        }
+                    }
+                }
+            }
             throw new IllegalArgumentException("No valid operator found in the expression");
         }
 

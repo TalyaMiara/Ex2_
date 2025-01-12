@@ -21,6 +21,7 @@ public void setData(String s) {
         // Update the type when setting the data
 
         if (isNumber(s)) {
+            this.line=String.valueOf(Double.parseDouble(s));
             type = Ex2Utils.NUMBER;
         }  else if (s.startsWith("=")&&isForm(s)) {
             type = Ex2Utils.FORM;
