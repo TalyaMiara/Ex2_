@@ -38,3 +38,4 @@ Evaluate all cells (eval()).
 Compute the computational depth of each cell (depth()).
 
 
+<img width="960" alt="gui" src="https://github.com/user-attachments/assets/89aa7080-99d8-431a-9ec3-b801d26bb8b8" />
