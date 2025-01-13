@@ -14,7 +14,6 @@ public class SCell implements Cell {
         setData(s);// Set initial value for the cell
     }
     /**
-     * Returns the order of the cell.
      * @return The order of the cell.
      */
     @Override
@@ -76,7 +75,7 @@ public void setData(String s) {
      * @param text The string to check.
      * @return True if the string is a valid number, false otherwise.
      */
-    public boolean isNumber(String text) {
+    public static boolean isNumber(String text) {
         if (text == null || text.isEmpty()) return false;
         try {
             Double.parseDouble(text);
@@ -91,11 +90,12 @@ public void setData(String s) {
      * @param text The string to check.
      * @return True if the string is a valid formula, false otherwise.
      */
-    public boolean isForm(String text) {
+    public static boolean isForm(String text) {
 
         if (text == null || text.isEmpty()) return false;
 
         //create new string from the 'text' string that start from the undex-1(without =)
+        if (text.charAt(0)!='=') return false;
         String content = text.substring(1);
 
         // Check for invalid consecutive operators (e.g., ++, --, etc.)

@@ -3,7 +3,6 @@ import java.io.*;
 
 public class Ex2Sheet implements Sheet {
     private Cell[][] table;
-    //
     public Ex2Sheet(int x, int y) {
         table = new SCell[x][y];
         for (int i = 0; i < x; i = i + 1) {
@@ -23,23 +22,30 @@ public class Ex2Sheet implements Sheet {
         return get(x, y).getData() != null ? eval(x, y) : Ex2Utils.EMPTY_CELL; // Evaluate cell value if non-empty
     }
 
-
-
+    /**
+     * Return the Cell in the x,y, position (or null if not in).
+     * @param x integer, x-coordinate of the cell.
+     * @param y integer, y-coordinate of the cell.
+     * @return the cell in the x,y coordinate.
+     */
     @Override
     public Cell get(int x, int y) {
         return table[x][y];
     }
 
+    /**
+     * @return the cell at the X.Y coordinate, or null if cords is an illegal coordinate or is out of this SprayedSheet.
+     */
     @Override
     public Cell get(String cords) {
         if (cords == null || cords.isEmpty()) {
             return null;
         }
         cords = cords.toUpperCase();
-        int col = cords.charAt(0) - 'A'; // עמודה לפי אות ראשונה
+        int col = cords.charAt(0) - 'A';
         int row;
         try {
-            row = Integer.parseInt(cords.substring(1)); // שורה מהמספר לאחר האות
+            row = Integer.parseInt(cords.substring(1));
         } catch (NumberFormatException e) {
             return null;
         }
@@ -67,7 +73,9 @@ public class Ex2Sheet implements Sheet {
             table[x][y] = c;
         }
     }
-
+    /**
+     * Evaluates (computes) all the values of all the cells in this spreadsheet.
+     */
     @Override
     public void eval() {
         for (int x=0; x<width();x++){
@@ -81,14 +89,20 @@ public class Ex2Sheet implements Sheet {
     public boolean isIn(int xx, int yy) {
         return xx >= 0 && xx < width() && yy >= 0 && yy < height();
     }
-//test
+    /**
+     *  Computes a 2D array of the same dimension as this SpreadSheet, each entry holds its dependency depth.
+     *  if a cell is not dependent on any other cell its depth is 0.
+     *  else assuming the cell depends on cell_1, cell_2... cell_n, the depth of a cell is
+     *  1+max(depth(cell_1), depth(cell_2), ... depth(cell_n)).
+     *  In case a cell os a circular dependency (e.g., c1 depends on c2 & c2 depends on c1) its depth should be -1.
+     */
     @Override
     public int[][] depth() {
         int[][] ans = new int[width()][height()];
 
         return ans;
     }
-
+    //load the file i saved before
     @Override
     public void load(String fileName) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
@@ -133,7 +147,7 @@ public class Ex2Sheet implements Sheet {
             throw e;
         }
     }
-
+    //save the values of the table
     @Override
     public void save(String fileName) throws IOException {
         try (Writer writer = new FileWriter(fileName)) {
@@ -151,7 +165,12 @@ public class Ex2Sheet implements Sheet {
             throw e;
         }
     }
-
+    /**
+     * Evaluates (computes) the value of the cell in the x,y coordinate.
+     * @param x integer, x-coordinate of the cell.
+     * @param y integer, y-coordinate of the cell.
+     * @return the string that will be presented in the x,y cell
+     */
     @Override
     public String eval(int x, int y) {
         Cell cell=get(x,y);
@@ -186,27 +205,27 @@ public class Ex2Sheet implements Sheet {
 
     }
 
-
+    //calculate the formula and return it as a double
     public Double computeForm(String form) {
 
         if (form == null || form.isEmpty()) {
             throw new IllegalArgumentException("Formula cannot be null or empty");
         }
 
-        // בדיקה אם הפורמולה מתחילה עם '='
+        // check if the formula starts with =
         if (form.charAt(0) != '=') {
             throw new IllegalArgumentException("Formula must start with '='");
         }
 
-        // להסיר את ה- "=" מהפורמולה
+        // remove = from the expression is not empty
         String expression = form.substring(1);
 
-        // בדיקה אם הביטוי שנשאר לא ריק
+        // check if the new expression is
         if (expression.isEmpty()) {
             throw new IllegalArgumentException("Formula is invalid after removing '='");
         }
 
-        // חישוב הביטוי
+        // call evaluate to return the calculate of the expression
         return evaluate(expression);
     }
 
@@ -241,7 +260,7 @@ public class Ex2Sheet implements Sheet {
         return index;
     }
 
-    // פונקציה רקורסיבית להערכת ביטוי
+    // a recursive function that return the result of the expression
 
     private Double evaluate(String expression) {
         expression = expression.trim();
@@ -279,25 +298,15 @@ public class Ex2Sheet implements Sheet {
 
         // If no operator is found, throw an error
         if (indexOfMainOperator == -1) {
-            int x=-1;
-            String str=String.valueOf(Character.toUpperCase(expression.charAt(0)));
-            for (int i = 0; i < Ex2Utils.ABC.length; i++) {
-                if (Ex2Utils.ABC[i].equals(str)){
-                    x=i;
-                    if (isNumber(expression.substring(1))) {
-                        double dy = Double.parseDouble(expression.substring(1));
-                        int y = (int) dy;
-                        if (y==dy){
-                            String s=get(x,y).getData();
-                            if (s.charAt(0)=='='){
-                                return  evaluate((computeForm(s)).toString());
-                            }
-                            return evaluate(s);
-                        }
-                    }
-                }
+
+            CellEntry ce = new CellEntry(expression);
+            int x=ce.getX();
+            int y=ce.getY();
+            String s=get(x,y).getData();
+            if (s.charAt(0)=='='){
+                return  evaluate((computeForm(s)).toString());
             }
-            throw new IllegalArgumentException("No valid operator found in the expression");
+            return evaluate(s);
         }
 
         // Split the expression into two parts
@@ -332,10 +341,8 @@ public class Ex2Sheet implements Sheet {
             return false;
         }
     }
-    // פונקציה למציאת האופרטור הראשי האחרון שיבוצע ותחזיר את המיקום של האופרטור האחרון שיבוצע
 
 
-    // פונקציה לקבלת עדיפות של אופרטור
     private int operatorPriority(char operator) {
         switch (operator) {
             case '+':
