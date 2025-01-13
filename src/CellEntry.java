@@ -51,21 +51,25 @@ public class CellEntry implements Index2D {
     }
 
     @Override
+    // Validates that x and y are non-negative and y is within the allowed width.
     public boolean isValid() {
         return x >= 0 && y >= 0 && y <= Ex2Utils.WIDTH;
     }
 
     @Override
+    // Converts the x coordinate to a column name and combines it with the y coordinate.
     public String toString() {
         return indexToColumn(x) + y;
     }
 
     @Override
+    // Returns the x coordinate.
     public int getX() {
         return x;
     }
 
     @Override
+    // Returns the y coordinate.
     public int getY() {
         return y;
     }
