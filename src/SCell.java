@@ -1,20 +1,30 @@
 // Add your documentation below:
 
 public class SCell implements Cell {
-    private String line;
-    private int type;
-    private int order;
+    private String line;  // Stores the content of the cell
+    private int type;     // Represents the type of data (TEXT, NUMBER, FORM)
+    private int order;    // Represents the order of the cell
 
+    /**
+     * Constructor that initializes the cell with a string value.
+     * @param s The initial value to set in the cell.
+     */
     public SCell(String s) {
         // Add your code here
         setData(s);// Set initial value for the cell
     }
-
+    /**
+     * Returns the order of the cell.
+     * @return The order of the cell.
+     */
     @Override
     public int getOrder() {
         return order;
     }
-
+    /**
+     * Sets the data for the cell, determining the type (NUMBER, FORM, or TEXT).
+     * @param s The data to set in the cell.
+     */
     @Override
 public void setData(String s) {
         this.line=s;
@@ -29,28 +39,44 @@ public void setData(String s) {
             type = Ex2Utils.TEXT; // invalid formula or input
         }
     }
+    /**
+     * Returns the data stored in the cell.
+     * @return The cell's data as a string.
+     */
     @Override
     public String getData() {
         return line;
     }
-
+    /**
+     * Returns the type of the cell (NUMBER, FORM, TEXT).
+     * @return The type of the cell.
+     */
     @Override
     public int getType() {
         return type;
     }
-
+    /**
+     * Sets the type of the cell.
+     * @param t The type to set for the cell.
+     */
     @Override
     public void setType(int t) {
         type = t;
     }
-
+    /**
+     * Sets the order of the cell.
+     * @param t The order to set for the cell.
+     */
     @Override
     public void setOrder(int t) {
         order = t;
     }
+    /**
+     * Checks if a given string is a valid number.
+     * @param text The string to check.
+     * @return True if the string is a valid number, false otherwise.
+     */
     public boolean isNumber(String text) {
-        //על ידי try and catch, נרצה לבדוק אם הסטרינג שמוזן הוא מספר
-        // הבדיקה פה היא בעצם האם אפשר לקחת ולהמיר ל-double או לא ולפי זה להכניס ל- try and catch
         if (text == null || text.isEmpty()) return false;
         try {
             Double.parseDouble(text);
@@ -59,34 +85,32 @@ public void setData(String s) {
             return false;
         }
     }
+    /**
+     * Checks if the given string is a valid formula.
+     * A formula must start with '=' and follow certain rules for operators and parentheses.
+     * @param text The string to check.
+     * @return True if the string is a valid formula, false otherwise.
+     */
     public boolean isForm(String text) {
-        //בדיקה ש-text הוא לא  null
-        //בדיקה אם הוא לא empty
-        //חייב להתחיל בשווה- return false
-        //ואז בדיקה- בה קורה:
-        //1-בדיקה שאין אופרטוק של כפל, חילוק, חיסוק וחיבור- עוקבים(לדוגמה ++ או --)
-        //2- בדיקה על הסוגריים- שעל כל סוגר פותח יש סוגר שסוגר- שכמות הסוגריים הפותחות והסוגרות היא שווה
-        //בבדיקה השלישית נרצה לבדוק מה קורה כאשר הסוגריים לא מסוגרים בסדר טוב:
-        //  לכתוב, אז תכתוב לי קוד שיבצע בדיקה ע"י stringbuilder שיעשה את זהלכתו 3- בדיקה נוספת היא לבדוק שהסוגריים ממוקמים במקומות נכונים-לדוג(5+)3+5- ככה זה לא טוב
 
         if (text == null || text.isEmpty()) return false;
 
         //create new string from the 'text' string that start from the undex-1(without =)
         String content = text.substring(1);
 
-        // בדיקה של תווים עוקבים לא תקינים (כמו ++ או --)
+        // Check for invalid consecutive operators (e.g., ++, --, etc.)
         if (content.matches(".*([+\\-*/])\\1{1,}.*")) {
             return false;
         }
 
-        // בדיקה של סוגריים - התאמה בין סוגר פותח לסוגר סוגר
+        // Check parentheses matching
         int openCount = 0;
         for (char c : content.toCharArray()) {
             if (c == '(') openCount++;
             else if (c == ')') openCount--;
-            if (openCount < 0) return false; // סוגר סוגר הופיע לפני סוגר פותח
+            if (openCount < 0) return false; // A closing parenthesis appeared before an opening parenthesis
         }
-        if (openCount != 0) return false; // מספר לא שווה של סוגריים
+        if (openCount != 0) return false; // Unequal number of opening and closing parentheses
 
         StringBuilder sb = new StringBuilder(content);
 
@@ -94,25 +118,24 @@ public void setData(String s) {
             char current = sb.charAt(i);
             char next = sb.charAt(i + 1);
 
-            // בדיקה: סוגר סוגר צמוד לסוגר פותח
+            // Check for invalid closing parenthesis followed by an opening parenthesis
             if (current == ')' && next == '(') {
-                return false; // רצף לא חוקי
+                return false;
             }
+            // Check for invalid closing parenthesis followed by a valid number
 
-            // בדיקה: סוגר סוגר ואחריו מספר תקין
             if (current == ')' && Character.isDigit(next)) {
-                return false; // סוגר סוגר לא יכול להיות צמוד למספר
+                return false;
             }
-
-            // בדיקה: מספר צמוד לסוגר פותח
+            // Check for an invalid number followed by an opening parenthesis
             if (Character.isDigit(current) && next == '(') {
-                return false; // מספר לא יכול לגעת בסוגר פותח
+                return false;
             }
         }
+        // Check if the formula ends with an opening parenthesis or starts with a closing parenthesis
 
-// בדיקה: סוגריים ריקים או סיום לא תקין
         if (content.endsWith("(") || content.startsWith(")")) {
-            return false; // ביטוי לא יכול להסתיים בסוגר פותח או להתחיל בסוגר סוגר
+            return false;
         }
 
         return true;
