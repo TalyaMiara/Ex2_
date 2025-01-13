@@ -116,7 +116,7 @@ public class Ex2Sheet implements Sheet {
 
             // Validate the file header
             String header = reader.readLine();
-            if (header == null || !header.equals("I2CS ArielU: SpreadSheet (Ex2) assignment\n")) {
+            if (header == null  || !header.equals("I2CS ArielU: SpreadSheet (Ex2) assignment - this line should be ignored in the load method")) {
                 throw new IOException("Invalid file format: Missing or incorrect header.");
             }
 
